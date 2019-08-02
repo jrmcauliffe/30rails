@@ -1,1 +1,1 @@
-module board exposing (..)
+module Board exposing (..)
