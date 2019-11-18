@@ -7,6 +7,13 @@ type alias Position =
     ( Int, Int )
 
 
+type GamePhase
+    = NewGame
+    | SetupPhase
+    | MainPhase
+    | GameOver
+
+
 type PostitionStatus
     = Empty
     | Mine
