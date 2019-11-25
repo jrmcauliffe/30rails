@@ -9,6 +9,7 @@ import Random
 
 type Msg
     = ClickedRoll
+    | GotDiceIndex Int
 
 
 view : Model -> Html Msg
@@ -38,7 +39,12 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickedRoll ->
-            ( model, Cmd.none )
+            Random.int 1 6
+                |> Random.generate GotDiceIndex
+                |> Tuple.pair model
+
+        GotDiceIndex face ->
+            ( { model | face = face }, Cmd.none )
 
 
 main : Program () Model Msg
