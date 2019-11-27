@@ -1,7 +1,10 @@
 module ThirtyRails exposing (main)
 
 import Browser
-import Html exposing (..)
+import Element exposing (Element, centerX, el, row, text)
+import Element.Font as Font
+import Element.Input exposing (button)
+import Html exposing (Html)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Random
@@ -14,16 +17,19 @@ type Msg
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ h1 [] [ text "30Rails" ]
-        , button [ onClick ClickedRoll ] [ text "Roll!" ]
-        , viewDice model.face
-        ]
+    Element.layout [ Font.size 50 ] <|
+        row [ centerX ]
+            [ text "30 Rails"
+            , button []
+                { onPress = Just ClickedRoll
+                , label = text "Roll"
+                }
+            , viewFace model
+            ]
 
 
-viewDice : Int -> Html Msg
-viewDice face =
-    div [] [ text (String.fromInt face) ]
+viewFace model =
+    text <| String.fromInt model.face
 
 
 type alias Model =
