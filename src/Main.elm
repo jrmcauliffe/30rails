@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Dict exposing (Dict)
-import Element exposing (Element, centerX, column, el, height, px, rgb255, row, text, width)
+import Element exposing (Element, centerX, centerY, column, el, height, padding, px, rgb255, row, text, width)
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
@@ -18,9 +18,9 @@ type Msg
 view : Model -> Html Msg
 view model =
     Element.layout [ Font.size 50 ] <|
-        column [ centerX ]
+        column [ centerX, padding 40 ]
             [ text "30 Rails"
-            , row []
+            , row [ padding 30 ]
                 [ viewBoard model, viewPanel model ]
             ]
 
@@ -35,13 +35,44 @@ viewBoard model =
 viewRow : Int -> Model -> Element Msg
 viewRow r model =
     List.range 1 6
-        |> List.map (\c -> viewSpace (Dict.get ( r, c ) model.board.playArea))
+        |> List.map (\c -> viewSpace model ( r, c ))
         |> row []
 
 
-viewSpace : Maybe Int -> Element Msg
-viewSpace v =
-    el [ width <| px 60, height <| px 60, Border.color <| rgb255 0 0 0, Border.width 5 ] <|
+viewSpace : Model -> ( Int, Int ) -> Element Msg
+viewSpace model ( r, c ) =
+    let
+        v =
+            Dict.get ( r, c ) model.board.playArea
+
+        w =
+            { bottom =
+                if r == 6 then
+                    4
+
+                else
+                    2
+            , left =
+                if c == 1 then
+                    4
+
+                else
+                    2
+            , right =
+                if c == 6 then
+                    4
+
+                else
+                    2
+            , top =
+                if r == 1 then
+                    4
+
+                else
+                    2
+            }
+    in
+    el [ width <| px 60, height <| px 60, Border.color <| rgb255 0 0 0, Border.widthEach w, padding 5 ] <|
         case v of
             Just a ->
                 text (String.fromInt a)
@@ -51,7 +82,7 @@ viewSpace v =
 
 
 viewPanel model =
-    column []
+    column [ padding 60 ]
         [ button []
             { onPress = Just ClickedRoll
             , label = text "Roll"
