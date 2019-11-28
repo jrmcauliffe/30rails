@@ -3,6 +3,7 @@ module Main exposing (main)
 import Browser
 import Dict exposing (Dict)
 import Element exposing (Element, centerX, centerY, column, el, height, padding, px, rgb255, row, text, width)
+import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
@@ -18,32 +19,42 @@ type Msg
 view : Model -> Html Msg
 view model =
     Element.layout [ Font.size 50 ] <|
-        column [ centerX, padding 40 ]
-            [ text "30 Rails"
-            , row [ padding 30 ]
-                [ viewBoard model, viewPanel model ]
+        row [ padding 30 ]
+            [ column
+                [ padding 40 ]
+                [ column
+                    [ padding 30, centerX ]
+                    [ text "30 Rails", viewBoard model.board ]
+                ]
+            , viewPanel model
             ]
 
 
-viewBoard : Model -> Element Msg
-viewBoard model =
+viewBoard : Board -> Element Msg
+viewBoard board =
     List.range 1 6
-        |> List.map (\r -> el [] <| viewRow r model)
+        |> List.map (\r -> el [] <| viewRow r board)
         |> column []
 
 
-viewRow : Int -> Model -> Element Msg
-viewRow r model =
+viewRow : Int -> Board -> Element Msg
+viewRow r board =
     List.range 1 6
-        |> List.map (\c -> viewSpace model ( r, c ))
-        |> row []
+        |> List.map (\c -> viewSpace board ( r, c ))
+        |> row
+            (if board.sr == Just r then
+                [ Background.color (rgb255 200 200 200) ]
+
+             else
+                []
+            )
 
 
-viewSpace : Model -> ( Int, Int ) -> Element Msg
-viewSpace model ( r, c ) =
+viewSpace : Board -> ( Int, Int ) -> Element Msg
+viewSpace board ( r, c ) =
     let
         v =
-            Dict.get ( r, c ) model.board.playArea
+            Dict.get ( r, c ) board.playArea
 
         w =
             { bottom =
@@ -100,6 +111,7 @@ type alias Board =
     , s : Maybe Int
     , e : Maybe Int
     , w : Maybe Int
+    , sr : Maybe Int
     , playArea : Dict ( Int, Int ) Int
     }
 
@@ -116,7 +128,7 @@ initialModel =
     , board =
         Dict.singleton ( 1, 1 ) 1
             |> Dict.insert ( 1, 2 ) 3
-            |> Board Nothing Nothing Nothing Nothing
+            |> Board Nothing Nothing Nothing Nothing Nothing
     }
 
 
@@ -129,7 +141,14 @@ update msg model =
                 |> Tuple.pair model
 
         GotDiceIndex face ->
-            ( { model | face = face }, Cmd.none )
+            let
+                oldboard =
+                    model.board
+
+                newboard =
+                    { oldboard | sr = Just face }
+            in
+            ( { model | face = face, board = newboard }, Cmd.none )
 
 
 main : Program () Model Msg
