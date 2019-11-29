@@ -6,20 +6,16 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Input exposing (button)
 import Msg exposing (Msg(..), Position)
+import Element.Font as Font
 import Tuple exposing (first, second)
-
-
-type GamePhase
-    = NewGame
-    | SetupPhase
-    | MainPhase
-    | GameOver
-
 
 type Mark
     = Track Int
     | Mountain
     | Mine
+
+
+
 
 
 init : Board
@@ -53,7 +49,7 @@ clearPos board position =
 viewBoard : Board -> Element Msg
 viewBoard board =
     List.range 1 6
-        |> List.map (\r -> el [] <| viewRow r board)
+        |> List.map (\r -> el [Font.size 50] <| viewRow r board)
         |> column []
 
 
