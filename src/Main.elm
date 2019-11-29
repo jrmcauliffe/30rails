@@ -23,12 +23,25 @@ view model =
             ]
 
 
+viewPanel : Model -> Element Msg
 viewPanel model =
+    let
+        p =
+            model.phase
+
+        v =
+            case p of
+                New ->
+                    button [ Font.size 30 ]
+                        { onPress = Just ClickedStart
+                        , label = text "Start"
+                        }
+
+                _ ->
+                    Element.none
+    in
     column [ padding 60 ]
-        [ button [ Font.size 30 ]
-            { onPress = Just ClickedRoll
-            , label = text "Roll"
-            }
+        [ v
         , viewFace model.face
         ]
 
@@ -40,7 +53,9 @@ viewFace face =
 
 viewHint : Phase -> Element Msg
 viewHint phase =
-    getHint phase |> text
+    getHint phase
+        |> text
+        |> el [ Font.size 15 ]
 
 
 type alias Model =
@@ -65,6 +80,9 @@ update msg model =
             Random.int 1 6
                 |> Random.generate GotDiceIndex
                 |> Tuple.pair model
+
+        ClickedStart ->
+            ( { model | phase = PlaceMountains }, Cmd.none )
 
         GotDiceIndex face ->
             let

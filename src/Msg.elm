@@ -1,4 +1,4 @@
-module Msg exposing (Msg(..), Position, Phase(..))
+module Msg exposing (Msg(..), Phase(..), Position)
 
 
 type alias Position =
@@ -15,7 +15,9 @@ type Phase
     | Gameover
     | Error
 
+
 type Msg
     = ClickedRoll
+    | ClickedStart
     | GotDiceIndex Int
     | GotBoardClick Position
