@@ -6,7 +6,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
-import Msg exposing (Msg(..), Position)
+import Msg exposing (Msg(..), Phase, Position)
 import Tuple exposing (first, second)
 
 
@@ -26,13 +26,13 @@ getPos board position =
     Dict.get position board.playArea
 
 
-setPos : Board -> Position -> Mark -> Board
-setPos board position mark =
+setPos : Board -> Phase -> Position -> Mark -> Maybe Board
+setPos board phase position mark =
     let
         newPlayArea =
             Dict.insert position mark board.playArea
     in
-    { board | playArea = newPlayArea }
+    Just { board | playArea = newPlayArea }
 
 
 clearPos : Board -> Position -> Board

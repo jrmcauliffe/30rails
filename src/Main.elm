@@ -95,7 +95,7 @@ update msg model =
             ( { model | face = face, board = newboard }, Cmd.none )
 
         GotBoardClick position ->
-            ( { model | board = Board.setPos model.board position Mine }, Cmd.none )
+            ( { model | board = Maybe.withDefault model.board (Board.setPos model.board model.phase position Mine) }, Cmd.none )
 
 
 main : Program () Model Msg
