@@ -1,15 +1,12 @@
-module Board exposing (Board, viewBoard)
+module Board exposing (Board, Mark(..), clearPos, getPos, init, setPos, viewBoard)
 
 import Dict exposing (Dict)
-import Element exposing (Element, centerX, centerY, column, el, height, padding, px, rgb255, row, text, width)
+import Element exposing (Element, column, el, height, padding, px, rgb255, row, text, width)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Font as Font
-import Msg exposing (Msg)
-
-
-type alias Position =
-    ( Int, Int )
+import Element.Input exposing (button)
+import Msg exposing (Msg(..), Position)
+import Tuple exposing (first, second)
 
 
 type GamePhase
@@ -17,6 +14,40 @@ type GamePhase
     | SetupPhase
     | MainPhase
     | GameOver
+
+
+type Mark
+    = Track Int
+    | Mountain
+    | Mine
+
+
+init : Board
+init =
+    Board Nothing Nothing Nothing Nothing Nothing Dict.empty
+
+
+getPos : Board -> Position -> Maybe Mark
+getPos board position =
+    Dict.get position board.playArea
+
+
+setPos : Board -> Position -> Mark -> Board
+setPos board position mark =
+    let
+        newPlayArea =
+            Dict.insert position mark board.playArea
+    in
+    { board | playArea = newPlayArea }
+
+
+clearPos : Board -> Position -> Board
+clearPos board position =
+    let
+        newPlayArea =
+            Dict.remove position board.playArea
+    in
+    { board | playArea = newPlayArea }
 
 
 viewBoard : Board -> Element Msg
@@ -39,11 +70,17 @@ viewRow r board =
             )
 
 
-viewSpace : Board -> ( Int, Int ) -> Element Msg
-viewSpace board ( r, c ) =
+viewSpace : Board -> Position -> Element Msg
+viewSpace board position =
     let
+        r =
+            first position
+
+        c =
+            second position
+
         v =
-            Dict.get ( r, c ) board.playArea
+            getPos board position
 
         w =
             { bottom =
@@ -72,17 +109,19 @@ viewSpace board ( r, c ) =
                     2
             }
     in
-    el [ width <| px 60, height <| px 60, Border.color <| rgb255 0 0 0, Border.widthEach w, padding 5 ] <|
+    button [ width <| px 60, height <| px 60, Border.color <| rgb255 0 0 0, Border.widthEach w, padding 5 ] <|
         case v of
-            Just a ->
-                text (String.fromInt a)
+            Just (Track n) ->
+                { onPress = Just (GotBoardClick position), label = text (String.fromInt n) }
+
+            Just Mountain ->
+                { onPress = Just (GotBoardClick position), label = text "Λ" }
+
+            Just Mine ->
+                { onPress = Just (GotBoardClick position), label = text "M" }
 
             Nothing ->
-                text ""
-
-
-viewFace model =
-    text <| String.fromInt model.face
+                { onPress = Just (GotBoardClick position), label = text "" }
 
 
 type alias Board =
@@ -91,5 +130,5 @@ type alias Board =
     , e : Maybe Int
     , w : Maybe Int
     , sr : Maybe Int
-    , playArea : Dict ( Int, Int ) Int
+    , playArea : Dict Position Mark
     }

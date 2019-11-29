@@ -3,9 +3,7 @@ module Main exposing (main)
 import Board exposing (..)
 import Browser
 import Dict exposing (Dict)
-import Element exposing (Element, centerX, centerY, column, el, height, padding, px, rgb255, row, text, width)
-import Element.Background as Background
-import Element.Border as Border
+import Element exposing (Element, centerX, column, padding, row, text)
 import Element.Font as Font
 import Element.Input exposing (button)
 import Html exposing (Html)
@@ -33,12 +31,13 @@ viewPanel model =
             { onPress = Just ClickedRoll
             , label = text "Roll"
             }
-        , viewFace model
+        , viewFace model.face
         ]
 
 
-viewFace model =
-    text <| String.fromInt model.face
+viewFace : Int -> Element Msg
+viewFace face =
+    text <| String.fromInt face
 
 
 type alias Model =
@@ -50,10 +49,7 @@ type alias Model =
 initialModel : Model
 initialModel =
     { face = 1
-    , board =
-        Dict.singleton ( 1, 1 ) 1
-            |> Dict.insert ( 1, 2 ) 3
-            |> Board Nothing Nothing Nothing Nothing Nothing
+    , board = Board.init
     }
 
 
@@ -74,6 +70,9 @@ update msg model =
                     { oldboard | sr = Just face }
             in
             ( { model | face = face, board = newboard }, Cmd.none )
+
+        GotBoardClick position ->
+            ( { model | board = Board.setPos model.board position Mine }, Cmd.none )
 
 
 main : Program () Model Msg
