@@ -4,18 +4,16 @@ import Dict exposing (Dict)
 import Element exposing (Element, column, el, height, padding, px, rgb255, row, text, width)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Font as Font
 import Element.Input exposing (button)
 import Msg exposing (Msg(..), Position)
-import Element.Font as Font
 import Tuple exposing (first, second)
+
 
 type Mark
     = Track Int
     | Mountain
     | Mine
-
-
-
 
 
 init : Board
@@ -48,14 +46,14 @@ clearPos board position =
 
 viewBoard : Board -> Element Msg
 viewBoard board =
-    List.range 1 6
-        |> List.map (\r -> el [Font.size 50] <| viewRow r board)
+    List.range 0 7
+        |> List.map (\r -> el [ Font.size 50 ] <| viewRow r board)
         |> column []
 
 
 viewRow : Int -> Board -> Element Msg
 viewRow r board =
-    List.range 1 6
+    List.range 0 7
         |> List.map (\c -> viewSpace board ( r, c ))
         |> row
             (if board.sr == Just r then
@@ -80,26 +78,26 @@ viewSpace board position =
 
         w =
             { bottom =
-                if r == 6 then
-                    4
+                if r == 7 then
+                    0
 
                 else
                     2
             , left =
-                if c == 1 then
-                    4
+                if c == 0 then
+                    0
 
                 else
                     2
             , right =
-                if c == 6 then
-                    4
+                if c == 7 then
+                    0
 
                 else
                     2
             , top =
-                if r == 1 then
-                    4
+                if r == 0 then
+                    0
 
                 else
                     2
