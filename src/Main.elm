@@ -82,7 +82,7 @@ update msg model =
                 |> Tuple.pair model
 
         ClickedStart ->
-            ( { model | phase = PlaceMountains }, Cmd.none )
+            ( { model | phase = PlaceMountains 1 }, Cmd.none )
 
         GotDiceIndex face ->
             let
@@ -95,7 +95,7 @@ update msg model =
             ( { model | face = face, board = newboard }, Cmd.none )
 
         GotBoardClick position ->
-            ( { model | board = Maybe.withDefault model.board (Board.setPos model.board model.phase position Mine) }, Cmd.none )
+            ( { model | board = Board.setPos model.board model.phase position model.face Mountain }, Cmd.none )
 
 
 main : Program () Model Msg

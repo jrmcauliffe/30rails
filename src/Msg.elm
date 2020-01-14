@@ -1,13 +1,17 @@
-module Msg exposing (Msg(..), Phase(..), Position)
+module Msg exposing (Msg(..), Phase(..), Position, Roll)
 
 
 type alias Position =
     ( Int, Int )
 
 
+type alias Roll =
+    Int
+
+
 type Phase
     = New
-    | PlaceMountains
+    | PlaceMountains Int
     | PlaceMine
     | PlaceStations
     | PlaceBonus
@@ -19,5 +23,5 @@ type Phase
 type Msg
     = ClickedRoll
     | ClickedStart
-    | GotDiceIndex Int
+    | GotDiceIndex Roll
     | GotBoardClick Position
