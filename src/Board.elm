@@ -28,13 +28,13 @@ init =
 
 getPos : Board -> Position -> Maybe Mark
 getPos board position =
-    Array.get ((boardSize * first position) + second position) board.playArea
+    Array.get ((boardSize * (first position - 1)) + (second position - 1)) board.playArea
 
 
 setPos : Board -> Phase -> Position -> Roll -> Mark -> Board
 setPos board phase position roll mark =
     if validMove position mark phase roll board then
-        { board | playArea = Array.set ((boardSize * first position) + second position) Mountain board.playArea }
+        { board | playArea = Array.set ((boardSize * (first position - 1)) + (second position - 1)) Mountain board.playArea }
 
     else
         board
@@ -76,33 +76,6 @@ viewSpace board position =
 
         v =
             getPos board position
-
-        --w =
-        --    { bottom =
-        --        if r > boardSize then
-        --            0
-        --
-        --        else
-        --            2
-        --    , left =
-        --        if c == 0 then
-        --            0
-        --
-        --        else
-        --            2
-        --    , right =
-        --        if c > boardSize then
-        --            0
-        --
-        --        else
-        --            2
-        --    , top =
-        --        if r == 0 then
-        --            0
-        --
-        --        else
-        --            2
-        --    }
     in
     button [ width <| px 60, height <| px 60, Border.color <| rgb255 0 0 0, Border.width 2, padding 5 ] <|
         case v of
@@ -141,7 +114,13 @@ validMove position mark phase roll board =
             False
 
         ( PlaceMountains row, Mountain, ( r, _ ) ) ->
-            (r == row) && (getPos board position == Just Empty)
+            (r == row)
+                && (List.range 1 boardSize
+                        |> List.filterMap (\col -> getPos board ( row, col ))
+                        |> List.filter (\x -> x /= Empty)
+                        |> List.length
+                        |> (==) 0
+                   )
 
         ( PlaceMine, Mine, _ ) ->
             True
