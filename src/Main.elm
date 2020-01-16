@@ -60,6 +60,7 @@ viewHint phase =
 
 type alias Model =
     { face : Int
+    , state : State
     , phase : Phase
     , board : Board
     }
@@ -68,6 +69,7 @@ type alias Model =
 initialModel : Model
 initialModel =
     { face = 1
+    , state = Roll
     , phase = New
     , board = Board.init
     }
@@ -82,20 +84,13 @@ update msg model =
                 |> Tuple.pair model
 
         ClickedStart ->
-            ( { model | phase = PlaceMountains 1 }, Cmd.none )
+            ( { model | phase = PlaceMountains 1, state = Place 1 }, Cmd.none )
 
         GotDiceIndex face ->
-            let
-                oldboard =
-                    model.board
-
-                newboard =
-                    { oldboard | sr = Just face }
-            in
-            ( { model | face = face, board = newboard }, Cmd.none )
+            ( { model | face = face, state = Place face }, Cmd.none )
 
         GotBoardClick position ->
-            ( { model | board = Board.setPos model.board model.phase position model.face Mountain }, Cmd.none )
+            ( { model | board = Board.setPos model.board model.phase position model.state Mountain }, Cmd.none )
 
 
 main : Program () Model Msg

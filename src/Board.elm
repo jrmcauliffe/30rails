@@ -6,7 +6,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
-import Msg exposing (Msg(..), Phase(..), Position, Roll)
+import Msg exposing (..)
 import Tuple exposing (first, second)
 
 
@@ -23,7 +23,7 @@ boardSize =
 
 init : Board
 init =
-    Board Nothing Nothing Nothing Nothing Nothing False <| Array.repeat (boardSize * boardSize) Empty
+    Board Nothing Nothing Nothing Nothing False <| Array.repeat (boardSize * boardSize) Empty
 
 
 getPos : Board -> Position -> Maybe Mark
@@ -31,13 +31,18 @@ getPos board position =
     Array.get ((boardSize * (first position - 1)) + (second position - 1)) board.playArea
 
 
-setPos : Board -> Phase -> Position -> Roll -> Mark -> Board
-setPos board phase position roll mark =
-    if validMove position mark phase roll board then
-        { board | playArea = Array.set ((boardSize * (first position - 1)) + (second position - 1)) Mountain board.playArea }
+setPos : Board -> Phase -> Position -> State -> Mark -> Board
+setPos board phase position state mark =
+    case state of
+        Place roll ->
+            if validMove position mark phase roll board then
+                { board | playArea = Array.set ((boardSize * (first position - 1)) + (second position - 1)) Mountain board.playArea }
 
-    else
-        board
+            else
+                board
+
+        Roll ->
+            board
 
 
 clearPos : PlayArea -> Position -> PlayArea
@@ -56,13 +61,7 @@ viewRow : Int -> Board -> Element Msg
 viewRow r board =
     List.range 1 boardSize
         |> List.map (\c -> viewSpace board ( r, c ))
-        |> row
-            (if board.sr == Just r then
-                [ Background.color (rgb255 200 200 200) ]
-
-             else
-                []
-            )
+        |> row []
 
 
 viewSpace : Board -> Position -> Element Msg
@@ -97,7 +96,6 @@ type alias Board =
     , s : Maybe Int
     , e : Maybe Int
     , w : Maybe Int
-    , sr : Maybe Int
     , skippedMine : Bool
     , playArea : PlayArea
     }
@@ -107,7 +105,7 @@ type alias PlayArea =
     Array Mark
 
 
-validMove : Position -> Mark -> Phase -> Roll -> Board -> Bool
+validMove : Position -> Mark -> Phase -> Int -> Board -> Bool
 validMove position mark phase roll board =
     case ( phase, mark, position ) of
         ( New, _, _ ) ->
