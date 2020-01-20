@@ -9,11 +9,11 @@ type Phase
     = New
     | PlaceMountains Int
     | PlaceMine
-    | PlaceStations
+    | PlaceStations Int
     | PlaceBonus
     | Main
     | Gameover
-    | Error
+    | Error String
 
 
 type State

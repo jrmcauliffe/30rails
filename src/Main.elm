@@ -18,7 +18,7 @@ view model =
         row [ padding 30 ]
             [ column
                 [ padding 30, centerX ]
-                [ el [ Font.size 50 ] (text "30 Rails"), viewBoard model.board, viewHint model.phase ]
+                [ el [ Font.size 50 ] (text "30 Rails"), viewBoard model.board, viewHint model.phase, viewDebug model ]
             , viewPanel model
             ]
 
@@ -26,15 +26,21 @@ view model =
 viewPanel : Model -> Element Msg
 viewPanel model =
     let
-        p =
-            model.phase
+        ps =
+            ( model.phase, model.state )
 
         v =
-            case p of
-                New ->
+            case ps of
+                ( New, _ ) ->
                     button [ Font.size 30 ]
                         { onPress = Just ClickedStart
                         , label = text "Start"
+                        }
+
+                ( _, Roll ) ->
+                    button [ Font.size 30 ]
+                        { onPress = Just ClickedRoll
+                        , label = text "Roll"
                         }
 
                 _ ->
@@ -58,12 +64,45 @@ viewHint phase =
         |> el [ Font.size 15 ]
 
 
+viewDebug : Model -> Element Msg
+viewDebug model =
+    row [] [ text "Debug", text (phaseString model.phase) ]
+
+
 type alias Model =
     { face : Int
     , state : State
     , phase : Phase
     , board : Board
     }
+
+
+phaseString : Phase -> String
+phaseString p =
+    case p of
+        New ->
+            "New"
+
+        PlaceMountains i ->
+            "Place Mountains, row " ++ String.fromInt i
+
+        PlaceMine ->
+            "Place Mine"
+
+        PlaceStations i ->
+            "Place Stations"
+
+        PlaceBonus ->
+            "Place Bonus Tile"
+
+        Main ->
+            "Main"
+
+        Gameover ->
+            "Game Over"
+
+        Error s ->
+            "Error: " ++ s
 
 
 initialModel : Model
@@ -84,13 +123,13 @@ update msg model =
                 |> Tuple.pair model
 
         ClickedStart ->
-            ( { model | phase = PlaceMountains 1, state = Place 1 }, Cmd.none )
+            ( { model | phase = PlaceMountains 1, state = Roll }, Cmd.none )
 
         GotDiceIndex face ->
             ( { model | face = face, state = Place face }, Cmd.none )
 
         GotBoardClick position ->
-            ( { model | board = Board.setPos model.board model.phase position model.state Mountain }, Cmd.none )
+            ( { model | board = Board.setPos model.board model.phase position model.state Mountain, state = Roll }, Cmd.none )
 
 
 main : Program () Model Msg
