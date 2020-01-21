@@ -66,7 +66,11 @@ viewHint phase =
 
 viewDebug : Model -> Element Msg
 viewDebug model =
-    row [] [ text "Debug", text (phaseString model.phase) ]
+    column []
+        [ row [] [ text "Debug" ]
+        , row [] [ text (phaseString model.phase) ]
+        , row [] [ text (stateString model.state) ]
+        ]
 
 
 type alias Model =
@@ -75,6 +79,16 @@ type alias Model =
     , phase : Phase
     , board : Board
     }
+
+
+stateString : State -> String
+stateString s =
+    case s of
+        Roll ->
+            "Roll"
+
+        Place n ->
+            "Place " ++ String.fromInt n
 
 
 phaseString : Phase -> String
@@ -129,7 +143,13 @@ update msg model =
             ( { model | face = face, state = Place face }, Cmd.none )
 
         GotBoardClick position ->
-            ( { model | board = Board.setPos model.board model.phase position model.state Mountain, state = Roll }, Cmd.none )
+            ( { model
+                | board = Board.setPos model.board model.phase position model.state Mountain
+                , state = Board.newState model.phase model.state
+                , phase = Board.newPhase model.phase
+              }
+            , Cmd.none
+            )
 
 
 main : Program () Model Msg

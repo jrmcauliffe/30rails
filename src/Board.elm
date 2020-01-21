@@ -1,4 +1,4 @@
-module Board exposing (Board, Mark(..), clearPos, getPos, init, setPos, viewBoard)
+module Board exposing (Board, Mark(..), clearPos, getPos, init, newPhase, newState, setPos, viewBoard)
 
 import Array exposing (Array)
 import Element exposing (Element, column, el, height, padding, px, rgb255, row, text, width)
@@ -103,6 +103,25 @@ type alias Board =
 
 type alias PlayArea =
     Array Mark
+
+
+newState : Phase -> State -> State
+newState phase state =
+    Roll
+
+
+newPhase : Phase -> Phase
+newPhase phase =
+    case phase of
+        PlaceMountains n ->
+            if n < 6 then
+                PlaceMountains (n + 1)
+
+            else
+                PlaceMine
+
+        _ ->
+            PlaceMine
 
 
 validMove : Position -> Mark -> Phase -> Int -> Board -> Bool
