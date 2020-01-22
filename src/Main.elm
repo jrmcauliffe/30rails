@@ -9,7 +9,6 @@ import Hints exposing (getHint)
 import Html exposing (Html)
 import Msg exposing (..)
 import Random
-import Tuple exposing (first, second)
 
 
 view : Model -> Html Msg
@@ -18,7 +17,7 @@ view model =
         row [ padding 30 ]
             [ column
                 [ padding 30, centerX ]
-                [ el [ Font.size 50 ] (text "30 Rails"), viewBoard model.board, viewHint (first model.state), viewDebug model ]
+                [ el [ Font.size 50 ] (text "30 Rails"), viewBoard model.board, viewHint model.gamePhase, viewDebug model ]
             , viewPanel model
             ]
 
@@ -27,7 +26,7 @@ viewPanel : Model -> Element Msg
 viewPanel model =
     let
         v =
-            case model.state of
+            case ( model.gamePhase, model.turnPhase ) of
                 ( New, _ ) ->
                     button [ Font.size 30 ]
                         { onPress = Just ClickedStart
@@ -65,14 +64,15 @@ viewDebug : Model -> Element Msg
 viewDebug model =
     column []
         [ row [] [ text "Debug" ]
-        , row [] [ text (gamePhaseString (first model.state)) ]
-        , row [] [ text (turnPhaseString (second model.state)) ]
+        , row [] [ text (gamePhaseString model.gamePhase) ]
+        , row [] [ text (turnPhaseString model.turnPhase) ]
         ]
 
 
 type alias Model =
     { face : Int
-    , state : GameState
+    , gamePhase : GamePhase
+    , turnPhase : TurnPhase
     , board : Board
     }
 
@@ -99,7 +99,7 @@ gamePhaseString p =
         PlaceMine ->
             "Place Mine"
 
-        PlaceStations i ->
+        PlaceStations _ ->
             "Place Stations"
 
         PlaceBonus ->
@@ -118,7 +118,8 @@ gamePhaseString p =
 initialModel : Model
 initialModel =
     { face = 1
-    , state = ( New, Roll )
+    , gamePhase = New
+    , turnPhase = Roll
     , board = Board.init
     }
 
@@ -132,20 +133,17 @@ update msg model =
                 |> Tuple.pair model
 
         ClickedStart ->
-            ( { model | state = ( PlaceMountains 1, Roll ) }, Cmd.none )
+            ( { model | gamePhase = PlaceMountains 1, turnPhase = Roll }, Cmd.none )
 
         GotDiceIndex face ->
-            let
-                gp =
-                    first model.state
-            in
-            ( { model | face = face, state = ( gp, Place face ) }, Cmd.none )
+            ( { model | face = face, turnPhase = Place face }, Cmd.none )
 
         GotBoardClick position ->
-            ( if Board.validMove position (getMark (first model.state)) model.state 5 model.board then
+            ( if Board.validMove position (getMark model.gamePhase) model.gamePhase model.board model.face then
                 { model
-                    | board = Board.setPos model.board model.state position Mountain
-                    , state = Board.newState model.state
+                    | gamePhase = Board.nextGamePhase model.gamePhase
+                    , turnPhase = Board.nextTurnPhase model.gamePhase model.turnPhase
+                    , board = Board.setPos model.board position (getMark model.gamePhase)
                 }
 
               else
@@ -157,8 +155,8 @@ update msg model =
 main : Program () Model Msg
 main =
     Browser.element
-        { init = \flags -> ( initialModel, Cmd.none )
+        { init = \_ -> ( initialModel, Cmd.none )
         , view = view
         , update = update
-        , subscriptions = \model -> Sub.none
+        , subscriptions = \_ -> Sub.none
         }

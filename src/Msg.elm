@@ -1,4 +1,4 @@
-module Msg exposing (GamePhase(..), GameState, Mark(..), Msg(..), Position, TurnPhase(..), getMark)
+module Msg exposing (GamePhase(..), Mark(..), Msg(..), Position, TurnPhase(..), getMark)
 
 
 type alias Position =
@@ -22,10 +22,6 @@ getMark phase =
 
         _ ->
             Empty
-
-
-type alias GameState =
-    ( GamePhase, TurnPhase )
 
 
 type GamePhase

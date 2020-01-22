@@ -1,8 +1,7 @@
-module Board exposing (Board, clearPos, getPos, init, newState, setPos, validMove, viewBoard)
+module Board exposing (Board, clearPos, getPos, init, nextGamePhase, nextTurnPhase, setPos, validMove, viewBoard)
 
 import Array exposing (Array)
 import Element exposing (Element, column, el, height, padding, px, rgb255, row, text, width)
-import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
@@ -12,6 +11,16 @@ import Tuple exposing (first, second)
 
 boardSize =
     6
+
+
+type alias Board =
+    { n : Maybe Int
+    , s : Maybe Int
+    , e : Maybe Int
+    , w : Maybe Int
+    , skippedMine : Bool
+    , playArea : PlayArea
+    }
 
 
 init : Board
@@ -24,14 +33,9 @@ getPos board position =
     Array.get ((boardSize * (first position - 1)) + (second position - 1)) board.playArea
 
 
-setPos : Board -> GameState -> Position -> Mark -> Board
-setPos board state position mark =
-    case state of
-        ( phase, Place roll ) ->
-            { board | playArea = Array.set ((boardSize * (first position - 1)) + (second position - 1)) mark board.playArea }
-
-        ( _, Roll ) ->
-            board
+setPos : Board -> Position -> Mark -> Board
+setPos board position mark =
+    { board | playArea = Array.set ((boardSize * (first position - 1)) + (second position - 1)) mark board.playArea }
 
 
 clearPos : PlayArea -> Position -> PlayArea
@@ -70,57 +74,62 @@ viewSpace board position =
             --Just (Track n) ->
             --    { onPress = Just (GotBoardClick position), label = text (String.fromInt n) }
             Just Mountain ->
-                { onPress = Just (GotBoardClick position), label = text "Λ" }
+                { onPress = Nothing, label = text "Λ" }
 
             Just Mine ->
-                { onPress = Just (GotBoardClick position), label = text "M" }
+                { onPress = Nothing, label = text "M" }
 
             _ ->
                 { onPress = Just (GotBoardClick position), label = text "" }
-
-
-type alias Board =
-    { n : Maybe Int
-    , s : Maybe Int
-    , e : Maybe Int
-    , w : Maybe Int
-    , skippedMine : Bool
-    , playArea : PlayArea
-    }
 
 
 type alias PlayArea =
     Array Mark
 
 
-newState : GameState -> GameState
-newState state =
-    case state of
-        ( _, Roll ) ->
-            state
-
-        ( PlaceMountains n, _ ) ->
+nextGamePhase : GamePhase -> GamePhase
+nextGamePhase gamePhase =
+    case gamePhase of
+        PlaceMountains n ->
             if n < 6 then
-                ( PlaceMountains (n + 1), Roll )
+                PlaceMountains (n + 1)
 
             else
-                ( PlaceMine, Place 1 )
+                PlaceMine
 
-        ( PlaceMine, _ ) ->
-            ( PlaceMine, Roll )
+        PlaceMine ->
+            PlaceStations 1
 
         _ ->
-            ( PlaceMine, Roll )
+            PlaceMine
 
 
-validMove : Position -> Mark -> GameState -> Int -> Board -> Bool
-validMove position mark phase roll board =
+nextTurnPhase : GamePhase -> TurnPhase -> TurnPhase
+nextTurnPhase gamePhase turnPhase =
+    case ( gamePhase, turnPhase ) of
+        ( PlaceMountains n, _ ) ->
+            if n < 6 then
+                Roll
+
+            else
+                Place 1
+
+        ( PlaceMine, _ ) ->
+            Roll
+
+        _ ->
+            Roll
+
+
+validMove : Position -> Mark -> GamePhase -> Board -> Int -> Bool
+validMove position mark phase board roll =
     case ( phase, mark, position ) of
-        ( ( New, _ ), _, _ ) ->
+        ( New, _, _ ) ->
             False
 
-        ( ( PlaceMountains row, _ ), Mountain, ( r, _ ) ) ->
+        ( PlaceMountains row, Mountain, ( r, c ) ) ->
             (r == row)
+                && (c == roll)
                 && (List.range 1 boardSize
                         |> List.filterMap (\col -> getPos board ( row, col ))
                         |> List.filter (\x -> x /= Empty)
@@ -128,10 +137,10 @@ validMove position mark phase roll board =
                         |> (==) 0
                    )
 
-        ( ( PlaceMine, _ ), Mine, _ ) ->
+        ( PlaceMine, Mine, _ ) ->
             True
 
         --( ( Main, _ ), Track i, _ ) ->
         --    True
-        ( ( _, _ ), _, _ ) ->
+        ( _, _, _ ) ->
             False
