@@ -1,11 +1,34 @@
-module Msg exposing (Msg(..), Phase(..), Position, State(..))
+module Msg exposing (GamePhase(..), GameState, Mark(..), Msg(..), Position, TurnPhase(..), getMark)
 
 
 type alias Position =
     ( Int, Int )
 
 
-type Phase
+type Mark
+    = Mountain
+    | Mine
+    | Empty
+
+
+getMark : GamePhase -> Mark
+getMark phase =
+    case phase of
+        PlaceMountains n ->
+            Mountain
+
+        PlaceMine ->
+            Mine
+
+        _ ->
+            Empty
+
+
+type alias GameState =
+    ( GamePhase, TurnPhase )
+
+
+type GamePhase
     = New
     | PlaceMountains Int
     | PlaceMine
@@ -16,7 +39,7 @@ type Phase
     | Error String
 
 
-type State
+type TurnPhase
     = Roll
     | Place Int
 

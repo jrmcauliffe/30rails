@@ -4,7 +4,7 @@ import Msg exposing (..)
 import Tuple exposing (first, second)
 
 
-hints : List ( Phase, String )
+hints : List ( GamePhase, String )
 hints =
     [ ( New, "Press start to begin a game" )
     , ( PlaceMountains 0, "Roll the white die 6 times, once for each row of the \"map\". Draw a mountain symbol in the column corresponding to the number on the die. One die roll may be ignored, and a mountain is not drawn in this row." )
@@ -17,7 +17,7 @@ hints =
     ]
 
 
-getHint : Phase -> String
+getHint : GamePhase -> String
 getHint phase =
     List.filter (\p -> first p == phase) hints
         |> List.head

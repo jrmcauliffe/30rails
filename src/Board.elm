@@ -1,4 +1,4 @@
-module Board exposing (Board, Mark(..), clearPos, getPos, init, newPhase, newState, setPos, viewBoard)
+module Board exposing (Board, clearPos, getPos, init, newState, setPos, validMove, viewBoard)
 
 import Array exposing (Array)
 import Element exposing (Element, column, el, height, padding, px, rgb255, row, text, width)
@@ -8,13 +8,6 @@ import Element.Font as Font
 import Element.Input exposing (button)
 import Msg exposing (..)
 import Tuple exposing (first, second)
-
-
-type Mark
-    = Track Int
-    | Mountain
-    | Mine
-    | Empty
 
 
 boardSize =
@@ -31,17 +24,13 @@ getPos board position =
     Array.get ((boardSize * (first position - 1)) + (second position - 1)) board.playArea
 
 
-setPos : Board -> Phase -> Position -> State -> Mark -> Board
-setPos board phase position state mark =
+setPos : Board -> GameState -> Position -> Mark -> Board
+setPos board state position mark =
     case state of
-        Place roll ->
-            if validMove position mark phase roll board then
-                { board | playArea = Array.set ((boardSize * (first position - 1)) + (second position - 1)) Mountain board.playArea }
+        ( phase, Place roll ) ->
+            { board | playArea = Array.set ((boardSize * (first position - 1)) + (second position - 1)) mark board.playArea }
 
-            else
-                board
-
-        Roll ->
+        ( _, Roll ) ->
             board
 
 
@@ -78,9 +67,8 @@ viewSpace board position =
     in
     button [ width <| px 60, height <| px 60, Border.color <| rgb255 0 0 0, Border.width 2, padding 5 ] <|
         case v of
-            Just (Track n) ->
-                { onPress = Just (GotBoardClick position), label = text (String.fromInt n) }
-
+            --Just (Track n) ->
+            --    { onPress = Just (GotBoardClick position), label = text (String.fromInt n) }
             Just Mountain ->
                 { onPress = Just (GotBoardClick position), label = text "Λ" }
 
@@ -105,32 +93,33 @@ type alias PlayArea =
     Array Mark
 
 
-newState : Phase -> State -> State
-newState phase state =
-    Roll
+newState : GameState -> GameState
+newState state =
+    case state of
+        ( _, Roll ) ->
+            state
 
-
-newPhase : Phase -> Phase
-newPhase phase =
-    case phase of
-        PlaceMountains n ->
+        ( PlaceMountains n, _ ) ->
             if n < 6 then
-                PlaceMountains (n + 1)
+                ( PlaceMountains (n + 1), Roll )
 
             else
-                PlaceMine
+                ( PlaceMine, Place 1 )
+
+        ( PlaceMine, _ ) ->
+            ( PlaceMine, Roll )
 
         _ ->
-            PlaceMine
+            ( PlaceMine, Roll )
 
 
-validMove : Position -> Mark -> Phase -> Int -> Board -> Bool
+validMove : Position -> Mark -> GameState -> Int -> Board -> Bool
 validMove position mark phase roll board =
     case ( phase, mark, position ) of
-        ( New, _, _ ) ->
+        ( ( New, _ ), _, _ ) ->
             False
 
-        ( PlaceMountains row, Mountain, ( r, _ ) ) ->
+        ( ( PlaceMountains row, _ ), Mountain, ( r, _ ) ) ->
             (r == row)
                 && (List.range 1 boardSize
                         |> List.filterMap (\col -> getPos board ( row, col ))
@@ -139,11 +128,10 @@ validMove position mark phase roll board =
                         |> (==) 0
                    )
 
-        ( PlaceMine, Mine, _ ) ->
+        ( ( PlaceMine, _ ), Mine, _ ) ->
             True
 
-        ( Main, Track i, _ ) ->
-            True
-
-        ( _, _, _ ) ->
+        --( ( Main, _ ), Track i, _ ) ->
+        --    True
+        ( ( _, _ ), _, _ ) ->
             False

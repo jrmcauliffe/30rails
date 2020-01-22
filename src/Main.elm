@@ -18,7 +18,7 @@ view model =
         row [ padding 30 ]
             [ column
                 [ padding 30, centerX ]
-                [ el [ Font.size 50 ] (text "30 Rails"), viewBoard model.board, viewHint model.phase, viewDebug model ]
+                [ el [ Font.size 50 ] (text "30 Rails"), viewBoard model.board, viewHint (first model.state), viewDebug model ]
             , viewPanel model
             ]
 
@@ -26,11 +26,8 @@ view model =
 viewPanel : Model -> Element Msg
 viewPanel model =
     let
-        ps =
-            ( model.phase, model.state )
-
         v =
-            case ps of
+            case model.state of
                 ( New, _ ) ->
                     button [ Font.size 30 ]
                         { onPress = Just ClickedStart
@@ -57,7 +54,7 @@ viewFace face =
     el [ Font.size 15 ] (text <| String.fromInt face)
 
 
-viewHint : Phase -> Element Msg
+viewHint : GamePhase -> Element Msg
 viewHint phase =
     getHint phase
         |> text
@@ -68,21 +65,20 @@ viewDebug : Model -> Element Msg
 viewDebug model =
     column []
         [ row [] [ text "Debug" ]
-        , row [] [ text (phaseString model.phase) ]
-        , row [] [ text (stateString model.state) ]
+        , row [] [ text (gamePhaseString (first model.state)) ]
+        , row [] [ text (turnPhaseString (second model.state)) ]
         ]
 
 
 type alias Model =
     { face : Int
-    , state : State
-    , phase : Phase
+    , state : GameState
     , board : Board
     }
 
 
-stateString : State -> String
-stateString s =
+turnPhaseString : TurnPhase -> String
+turnPhaseString s =
     case s of
         Roll ->
             "Roll"
@@ -91,8 +87,8 @@ stateString s =
             "Place " ++ String.fromInt n
 
 
-phaseString : Phase -> String
-phaseString p =
+gamePhaseString : GamePhase -> String
+gamePhaseString p =
     case p of
         New ->
             "New"
@@ -122,8 +118,7 @@ phaseString p =
 initialModel : Model
 initialModel =
     { face = 1
-    , state = Roll
-    , phase = New
+    , state = ( New, Roll )
     , board = Board.init
     }
 
@@ -137,17 +132,24 @@ update msg model =
                 |> Tuple.pair model
 
         ClickedStart ->
-            ( { model | phase = PlaceMountains 1, state = Roll }, Cmd.none )
+            ( { model | state = ( PlaceMountains 1, Roll ) }, Cmd.none )
 
         GotDiceIndex face ->
-            ( { model | face = face, state = Place face }, Cmd.none )
+            let
+                gp =
+                    first model.state
+            in
+            ( { model | face = face, state = ( gp, Place face ) }, Cmd.none )
 
         GotBoardClick position ->
-            ( { model
-                | board = Board.setPos model.board model.phase position model.state Mountain
-                , state = Board.newState model.phase model.state
-                , phase = Board.newPhase model.phase
-              }
+            ( if Board.validMove position (getMark (first model.state)) model.state 5 model.board then
+                { model
+                    | board = Board.setPos model.board model.state position Mountain
+                    , state = Board.newState model.state
+                }
+
+              else
+                model
             , Cmd.none
             )
 
