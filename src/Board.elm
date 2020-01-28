@@ -137,8 +137,12 @@ validMove position mark phase board roll =
                         |> (==) 0
                    )
 
-        ( PlaceMine, Mine, _ ) ->
-            True
+        ( PlaceMine, Mine, ( r, c ) ) ->
+            (getPos board ( r, c ) == Just Empty)
+                && ([ ( r + 1, c ), ( r - 1, c ), ( r, c + 1 ), ( r, c - 1 ) ]
+                        |> List.filterMap (getPos board)
+                        |> List.member Mountain
+                   )
 
         --( ( Main, _ ), Track i, _ ) ->
         --    True
