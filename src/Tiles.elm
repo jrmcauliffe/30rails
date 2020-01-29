@@ -54,8 +54,8 @@ dice n =
                     dice1
     in
     svg
-        [ width "500"
-        , height "500"
+        [ width "80"
+        , height "80"
         , viewBox "0 0 500 500"
         ]
         [ Svg.path
