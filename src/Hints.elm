@@ -1,7 +1,7 @@
 module Hints exposing (getHint, hints)
 
-import Msg exposing (..)
 import Tuple exposing (first, second)
+import Types exposing (..)
 
 
 hints : List ( GamePhase, String )

@@ -5,8 +5,8 @@ import Element exposing (Element, column, el, height, padding, px, rgb255, row, 
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
-import Msg exposing (..)
 import Tuple exposing (first, second)
+import Types exposing (..)
 
 
 boardSize =

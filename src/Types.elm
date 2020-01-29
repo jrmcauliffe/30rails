@@ -1,4 +1,4 @@
-module Msg exposing (GamePhase(..), Mark(..), Msg(..), Position, TurnPhase(..), getMark)
+module Types exposing (GamePhase(..), Mark(..), Msg(..), Position, TurnPhase(..), getMark)
 
 
 type alias Position =

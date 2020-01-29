@@ -7,8 +7,10 @@ import Element.Font as Font
 import Element.Input exposing (button)
 import Hints exposing (getHint)
 import Html exposing (Html)
-import Msg exposing (..)
 import Random
+import Svg exposing (Svg)
+import Tiles exposing (dice)
+import Types exposing (..)
 
 
 view : Model -> Html Msg
@@ -50,7 +52,11 @@ viewPanel model =
 
 viewFace : Int -> Element Msg
 viewFace face =
-    el [ Font.size 15 ] (text <| String.fromInt face)
+    dice face |> Element.html
+
+
+
+--    el [ Font.size 15 ] (text <| String.fromInt face)
 
 
 viewHint : GamePhase -> Element Msg
