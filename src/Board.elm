@@ -7,6 +7,8 @@ import Element.Font as Font
 import Element.Input exposing (button)
 import Tuple exposing (first, second)
 import Types exposing (..)
+import Svg exposing(..)
+import Svg.Attributes exposing(..)
 
 
 boardSize =
@@ -42,45 +44,56 @@ clearPos : PlayArea -> Position -> PlayArea
 clearPos playArea position =
     Array.set ((boardSize * first position) + second position) Empty playArea
 
-
 viewBoard : Board -> Element Msg
 viewBoard board =
-    List.range 1 boardSize
-        |> List.map (\r -> el [ Font.size 50 ] <| viewRow r board)
-        |> column []
+    let width = 35 in
+    List.range 0 boardSize
+    |> List.concatMap (\n -> [Svg.line [x1 "0", y1 (String.fromInt (n*width)), x2 (String.fromInt(boardSize * width)), y2 (String.fromInt (n*width)), stroke "black"] [],
+                        Svg.line [y1 "0", x1 (String.fromInt (n*width)), y2 (String.fromInt(boardSize * width)), x2 (String.fromInt (n*width)), stroke "black"] []])
+    |> svg [ Svg.Attributes.width "300"
+               , Svg.Attributes.height "300"
+               , viewBox "-5 -5 350 350"
+              ]
+    |> Element.html
 
-
-viewRow : Int -> Board -> Element Msg
-viewRow r board =
-    List.range 1 boardSize
-        |> List.map (\c -> viewSpace board ( r, c ))
-        |> row []
-
-
-viewSpace : Board -> Position -> Element Msg
-viewSpace board position =
-    let
-        r =
-            first position
-
-        c =
-            second position
-
-        v =
-            getPos board position
-    in
-    button [ width <| px 60, height <| px 60, Border.color <| rgb255 0 0 0, Border.width 2, padding 5 ] <|
-        case v of
-            --Just (Track n) ->
-            --    { onPress = Just (GotBoardClick position), label = text (String.fromInt n) }
-            Just Mountain ->
-                { onPress = Nothing, label = text "Λ" }
-
-            Just Mine ->
-                { onPress = Nothing, label = text "M" }
-
-            _ ->
-                { onPress = Just (GotBoardClick position), label = text "" }
+--viewBoard : Board -> Element Msg
+--viewBoard board =
+--    List.range 1 boardSize
+--        |> List.map (\r -> el [ Font.size 50 ] <| viewRow r board)
+--        |> column []
+--
+--
+--viewRow : Int -> Board -> Element Msg
+--viewRow r board =
+--    List.range 1 boardSize
+--        |> List.map (\c -> viewSpace board ( r, c ))
+--        |> row []
+--
+--
+--viewSpace : Board -> Position -> Element Msg
+--viewSpace board position =
+--    let
+--        r =
+--            first position
+--
+--        c =
+--            second position
+--
+--        v =
+--            getPos board position
+--    in
+--    button [ width <| px 60, height <| px 60, Border.color <| rgb255 0 0 0, Border.width 2, padding 5 ] <|
+--        case v of
+--            --Just (Track n) ->
+--            --    { onPress = Just (GotBoardClick position), label = text (String.fromInt n) }
+--            Just Mountain ->
+--                { onPress = Nothing, label = text "Λ" }
+--
+--            Just Mine ->
+--                { onPress = Nothing, label = text "M" }
+--
+--            _ ->
+--                { onPress = Just (GotBoardClick position), label = text "" }
 
 
 type alias PlayArea =
