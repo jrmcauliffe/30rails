@@ -46,13 +46,14 @@ clearPos playArea position =
 
 viewBoard : Board -> Element Msg
 viewBoard board =
-    let width = 35 in
+    let width = 40 in
     List.range 0 boardSize
     |> List.concatMap (\n -> [Svg.line [x1 "0", y1 (String.fromInt (n*width)), x2 (String.fromInt(boardSize * width)), y2 (String.fromInt (n*width)), stroke "black"] [],
                         Svg.line [y1 "0", x1 (String.fromInt (n*width)), y2 (String.fromInt(boardSize * width)), x2 (String.fromInt (n*width)), stroke "black"] []])
     |> svg [ Svg.Attributes.width "300"
                , Svg.Attributes.height "300"
-               , viewBox "-5 -5 350 350"
+               , viewBox "-5 -5 310 310"
+               , strokeWidth "2"
               ]
     |> Element.html
 
