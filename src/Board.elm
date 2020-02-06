@@ -5,10 +5,10 @@ import Element exposing (Element, column, el, height, padding, px, rgb255, row, 
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
+import Svg exposing (..)
+import Svg.Attributes exposing (..)
 import Tuple exposing (first, second)
 import Types exposing (..)
-import Svg exposing(..)
-import Svg.Attributes exposing(..)
 
 
 boardSize =
@@ -44,18 +44,29 @@ clearPos : PlayArea -> Position -> PlayArea
 clearPos playArea position =
     Array.set ((boardSize * first position) + second position) Empty playArea
 
+
 viewBoard : Board -> Element Msg
 viewBoard board =
-    let width = 40 in
+    let
+        width =
+            40
+    in
     List.range 0 boardSize
-    |> List.concatMap (\n -> [Svg.line [x1 "0", y1 (String.fromInt (n*width)), x2 (String.fromInt(boardSize * width)), y2 (String.fromInt (n*width)), stroke "black"] [],
-                        Svg.line [y1 "0", x1 (String.fromInt (n*width)), y2 (String.fromInt(boardSize * width)), x2 (String.fromInt (n*width)), stroke "black"] []])
-    |> svg [ Svg.Attributes.width "300"
-               , Svg.Attributes.height "300"
-               , viewBox "-5 -5 310 310"
-               , strokeWidth "2"
-              ]
-    |> Element.html
+        |> List.concatMap
+            (\n ->
+                [ Svg.line [ x1 "0", y1 (String.fromInt (n * width)), x2 (String.fromInt (boardSize * width)), y2 (String.fromInt (n * width)), stroke "black" ] []
+                , Svg.line [ y1 "0", x1 (String.fromInt (n * width)), y2 (String.fromInt (boardSize * width)), x2 (String.fromInt (n * width)), stroke "black" ] []
+                ]
+            )
+        |> svg
+            [ Svg.Attributes.width "300"
+            , Svg.Attributes.height "300"
+            , viewBox "-5 -5 310 310"
+            , strokeWidth "2"
+            ]
+        |> Element.html
+
+
 
 --viewBoard : Board -> Element Msg
 --viewBoard board =
