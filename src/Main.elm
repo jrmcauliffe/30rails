@@ -145,17 +145,21 @@ update msg model =
             ( { model | face = face, turnPhase = Place face }, Cmd.none )
 
         GotBoardClick position ->
-            ( if Board.validMove position (getMark model.gamePhase) model.gamePhase model.board model.face then
-                { model
+            if Board.validMove position (getMark model.gamePhase) model.gamePhase model.board model.face then
+                ( { model
                     | gamePhase = Board.nextGamePhase model.gamePhase
                     , turnPhase = Board.nextTurnPhase model.gamePhase model.turnPhase
                     , board = Board.setPos model.board position (getMark model.gamePhase)
-                }
+                  }
+                , Cmd.none
+                )
 
-              else
-                model
-            , Cmd.none
-            )
+            else
+                ( model, Cmd.none )
+
+
+
+-- model
 
 
 main : Program () Model Msg

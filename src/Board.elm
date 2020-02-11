@@ -7,6 +7,7 @@ import Element.Font as Font
 import Element.Input exposing (button)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+import Svg.Events exposing (onClick)
 import Tuple exposing (first, second)
 import Types exposing (..)
 
@@ -56,6 +57,7 @@ viewBoard board =
             (\n ->
                 [ Svg.line [ x1 "0", y1 (String.fromInt (n * width)), x2 (String.fromInt (boardSize * width)), y2 (String.fromInt (n * width)), stroke "black" ] []
                 , Svg.line [ y1 "0", x1 (String.fromInt (n * width)), y2 (String.fromInt (boardSize * width)), x2 (String.fromInt (n * width)), stroke "black" ] []
+                , Svg.rect [ onClick (GotBoardClick ( n, n )), x (String.fromInt (n * width)), y (String.fromInt (n * width)), Svg.Attributes.width (String.fromInt width), Svg.Attributes.height (String.fromInt width) ] []
                 ]
             )
         |> svg
