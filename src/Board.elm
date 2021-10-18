@@ -7,7 +7,7 @@ import Element.Font as Font
 import Element.Input exposing (button)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-import Svg.Events exposing (onClick)
+import Tiles exposing (drawTile)
 import Tuple exposing (first, second)
 import Types exposing (..)
 
@@ -51,15 +51,27 @@ viewBoard board =
     let
         width =
             40
+
+        positions =
+            List.range 1 boardSize
+                |> List.concatMap (\r -> List.range 1 boardSize |> List.map (\c -> ( r, c )))
+                |> List.filterMap
+                    (\pos -> getPos board pos |> Maybe.map (drawTile pos width))
+
+        lines =
+            List.range 0 (boardSize - 1)
+                |> List.concatMap
+                    (\n ->
+                        [ Svg.line [ x1 "0", y1 (String.fromInt (n * width)), x2 (String.fromInt (boardSize * width)), y2 (String.fromInt (n * width)), stroke "black" ] []
+                        , Svg.line [ y1 "0", x1 (String.fromInt (n * width)), y2 (String.fromInt (boardSize * width)), x2 (String.fromInt (n * width)), stroke "black" ] []
+                        ]
+                    )
+                |> List.append
+                    [ Svg.line [ x1 "0", y1 (String.fromInt (boardSize * width)), x2 (String.fromInt (boardSize * width)), y2 (String.fromInt (boardSize * width)), stroke "black" ] []
+                    , Svg.line [ y1 "0", x1 (String.fromInt (boardSize * width)), y2 (String.fromInt (boardSize * width)), x2 (String.fromInt (boardSize * width)), stroke "black" ] []
+                    ]
     in
-    List.range 0 boardSize
-        |> List.concatMap
-            (\n ->
-                [ Svg.line [ x1 "0", y1 (String.fromInt (n * width)), x2 (String.fromInt (boardSize * width)), y2 (String.fromInt (n * width)), stroke "black" ] []
-                , Svg.line [ y1 "0", x1 (String.fromInt (n * width)), y2 (String.fromInt (boardSize * width)), x2 (String.fromInt (n * width)), stroke "black" ] []
-                , Svg.rect [ onClick (GotBoardClick ( n, n )), x (String.fromInt (n * width)), y (String.fromInt (n * width)), Svg.Attributes.width (String.fromInt width), Svg.Attributes.height (String.fromInt width) ] []
-                ]
-            )
+    List.append lines positions
         |> svg
             [ Svg.Attributes.width "300"
             , Svg.Attributes.height "300"

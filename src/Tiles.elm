@@ -2,6 +2,22 @@ module Tiles exposing (..)
 
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+import Svg.Events exposing (onClick)
+import Tuple exposing (first, second)
+import Types exposing (..)
+
+
+drawTile : Position -> Int -> Mark -> Svg Msg
+drawTile pos width mark =
+    Svg.rect
+        [ onClick (GotBoardClick ( first pos, second pos ))
+        , x (String.fromInt ((first pos - 1) * width))
+        , y (String.fromInt ((second pos - 1) * width))
+        , Svg.Attributes.width (String.fromInt width)
+        , Svg.Attributes.height (String.fromInt width)
+        , fill "rgb(0,0,0)"
+        ]
+        []
 
 
 dice1 =
