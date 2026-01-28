@@ -1,4 +1,4 @@
-module Board exposing (Board, clearPos, getPos, init, nextGamePhase, nextTurnPhase, setPos, validMove, viewBoard)
+module Board exposing (Board, clearPos, getPos, init, nextGamePhase, nextTurnPhase, renderBoard, setPos, validMove)
 
 import Array exposing (Array)
 import Element exposing (Element, column, el, height, padding, px, rgb255, row, text, width)
@@ -46,11 +46,11 @@ clearPos playArea position =
     Array.set ((boardSize * first position) + second position) Empty playArea
 
 
-viewBoard : Board -> Element Msg
-viewBoard board =
+renderBoard : Board -> Element Msg
+renderBoard board =
     let
         width =
-            40
+            60
 
         positions =
             List.range 1 boardSize
@@ -58,24 +58,39 @@ viewBoard board =
                 |> List.filterMap
                     (\pos -> getPos board pos |> Maybe.map (drawTile pos width))
 
+        bumpers =
+            let
+                drawbox : Position -> Position -> Svg Msg
+                drawbox from to =
+                    Svg.rect
+                        [ x (String.fromInt (width * first from))
+                        , y (String.fromInt (width * second from))
+                        , Svg.Attributes.width (String.fromInt (width * (first to - first from + 1)))
+                        , Svg.Attributes.height (String.fromInt (width * (second to - second from + 1)))
+                        , fill "rgb(192,192,192)"
+                        ]
+                        []
+            in
+            [ drawbox ( 2, 1 ) ( 7, 1 ) -- N
+            , drawbox ( 2, 8 ) ( 7, 8 ) -- S
+            , drawbox ( 8, 2 ) ( 8, 7 ) -- E
+            , drawbox ( 1, 2 ) ( 1, 7 ) -- W
+            ]
+
         lines =
-            List.range 0 (boardSize - 1)
+            List.range 0 boardSize
                 |> List.concatMap
                     (\n ->
-                        [ Svg.line [ x1 "0", y1 (String.fromInt (n * width)), x2 (String.fromInt (boardSize * width)), y2 (String.fromInt (n * width)), stroke "black" ] []
-                        , Svg.line [ y1 "0", x1 (String.fromInt (n * width)), y2 (String.fromInt (boardSize * width)), x2 (String.fromInt (n * width)), stroke "black" ] []
+                        [ Svg.line [ x1 "0", y1 (String.fromInt ((n + 2) * width)), x2 (String.fromInt ((boardSize + 4) * width)), y2 (String.fromInt ((n + 2) * width)), stroke "black" ] []
+                        , Svg.line [ y1 "0", x1 (String.fromInt ((n + 2) * width)), y2 (String.fromInt ((boardSize + 4) * width)), x2 (String.fromInt ((n + 2) * width)), stroke "black" ] []
                         ]
                     )
-                |> List.append
-                    [ Svg.line [ x1 "0", y1 (String.fromInt (boardSize * width)), x2 (String.fromInt (boardSize * width)), y2 (String.fromInt (boardSize * width)), stroke "black" ] []
-                    , Svg.line [ y1 "0", x1 (String.fromInt (boardSize * width)), y2 (String.fromInt (boardSize * width)), x2 (String.fromInt (boardSize * width)), stroke "black" ] []
-                    ]
     in
-    List.append lines positions
+    List.append bumpers lines
         |> svg
-            [ Svg.Attributes.width "300"
-            , Svg.Attributes.height "300"
-            , viewBox "-5 -5 310 310"
+            [ Svg.Attributes.width "600"
+            , Svg.Attributes.height "600"
+            , viewBox "-5 -5 610 610"
             , strokeWidth "2"
             ]
         |> Element.html

@@ -15,7 +15,7 @@ drawTile pos width mark =
         , y (String.fromInt ((second pos - 1) * width))
         , Svg.Attributes.width (String.fromInt width)
         , Svg.Attributes.height (String.fromInt width)
-        , fill "rgb(0,0,0)"
+        , fill "rgb(12,128,128)"
         ]
         []
 
