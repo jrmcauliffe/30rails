@@ -1,0 +1,58 @@
+name: CI
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "master" branch
+  push:
+    branches: [ "master" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Required for OIDC token
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install elm, elm-format and cache the ELM_HOME directory
+        uses: mpizenberg/elm-tooling-action@v1.6
+        with:
+          cache-key: elm-home-${{ hashFiles('elm-tooling.json', 'elm.json') }}
+
+      - name: Run Tests
+        run: elm-test-rs tests/* >> $GITHUB_STEP_SUMMARY
+
+  deploy:
+    needs: [test]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install elm, elm-format and cache the ELM_HOME directory
+        uses: mpizenberg/elm-tooling-action@v1.6
+        with:
+          cache-key: elm-home-${{ hashFiles('elm-tooling.json', 'elm.json') }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/github-actions-website-deploy
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Build
+        run: elm make --optimize src/Main.elm
+
+      - name: Deploy to website
+        run: aws s3 cp index.html s3://${{ vars.S3_BUCKET }}${{ vars.S3_BUCKET_PATH }}
+
+      - name: Invalidate CloudFront Cache
+        run: aws cloudfront create-invalidation --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} --paths '${{ vars.S3_BUCKET_PATH }}*'
