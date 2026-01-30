@@ -19,7 +19,7 @@ view model =
         row [ padding 30 ]
             [ column
                 [ padding 30, centerX ]
-                [ el [ Font.size 50 ] (text "30 Rails"), renderBoard model.board, viewHint model.gamePhase, viewDebug model ]
+                [ el [ Font.size 50, Font.family [ Font.typeface "Alfa Slab One" ] ] (text "30 Rails"), renderBoard model.board, viewHint model.gamePhase, viewDebug model ]
             , viewPanel model
             ]
 

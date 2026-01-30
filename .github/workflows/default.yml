@@ -49,10 +49,12 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Build
-        run: elm make --optimize src/Main.elm
+        run: elm make --optimize src/Main.elm --output=elm.js
 
       - name: Deploy to website
-        run: aws s3 cp index.html s3://${{ vars.S3_BUCKET }}${{ vars.S3_BUCKET_PATH }}
+        run: |
+          aws s3 cp index.html s3://${{ vars.S3_BUCKET }}${{ vars.S3_BUCKET_PATH }}
+          aws s3 cp elm.js s3://${{ vars.S3_BUCKET }}${{ vars.S3_BUCKET_PATH }}
 
       - name: Invalidate CloudFront Cache
         run: aws cloudfront create-invalidation --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} --paths '${{ vars.S3_BUCKET_PATH }}*'
