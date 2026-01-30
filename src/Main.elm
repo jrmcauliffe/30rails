@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Board exposing (..)
 import Browser
+import Dice exposing (Color(..), DiceColors, DiceConfig, view)
 import Element exposing (Element, centerX, column, el, padding, row, text)
 import Element.Font as Font
 import Element.Input exposing (button)
@@ -9,7 +10,6 @@ import Hints exposing (getHint)
 import Html exposing (Html)
 import Random
 import Svg exposing (Svg)
-import Tiles exposing (dice)
 import Types exposing (..)
 
 
@@ -50,9 +50,16 @@ viewPanel model =
         ]
 
 
+diceConfig : DiceConfig
+diceConfig =
+    { size = 56
+    , colors = { background = Named "navy", pips = Named "red", border = Nothing }
+    }
+
+
 viewFace : Int -> Element Msg
 viewFace face =
-    dice face |> Element.html
+    Dice.view diceConfig face |> Element.html
 
 
 
