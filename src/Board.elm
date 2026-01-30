@@ -164,9 +164,7 @@ renderBoard board =
     in
     List.concat [ bumpers, headerDice, footerDice, leftDice, rightDice, lines ]
         |> svg
-            [ Svg.Attributes.width totalSizeStr
-            , Svg.Attributes.height totalSizeStr
-            , viewBox viewBoxStr
+            [ viewBox viewBoxStr
             , strokeWidth "2"
             ]
         |> Element.html
