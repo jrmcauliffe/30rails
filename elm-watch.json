@@ -1,0 +1,10 @@
+{
+    "targets": {
+        "30rails": {
+            "inputs": [
+                "src/Main.elm"
+            ],
+            "output": "build/main.js"
+        }
+    }
+}

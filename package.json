@@ -1,0 +1,14 @@
+{
+  "name": "30rails",
+  "version": "1.0.0",
+  "description": "30 Rails, a single-player board game implemented in Elm",
+  "private": true,
+  "scripts": {
+    "postinstall": "elm-tooling install"
+  },
+  "devDependencies": {
+    "elm-tooling": "^1.20.0",
+    "elm-watch": "^1.2.8",
+    "uglify-js": "^3.19.3"
+  }
+}

@@ -1,9 +1,11 @@
 # intellij
 .idea/
 *.iml
+# node / elm-tooling
+node_modules
 # elm-package generated files
 elm-stuff
 # elm-repl generated files
 repl-temp-*
-elm.js
-elm.min.js
+# compiled output (elm-watch / elm make)
+/build
