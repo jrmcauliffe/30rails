@@ -6,12 +6,18 @@
     <title>30 Rails</title>
     <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; }
-        svg {
-            max-width: 90vmin;
-            max-height: 90vmin;
-            width: auto;
+        html, body { height: 100%; margin: 0; }
+        #app { height: 100%; }
+
+        /* Elm sizes the board in pixels from the window size; these are the
+           safety net if it ever exceeds its container, and the touch tweaks. */
+        .board {
+            display: block;
+            max-width: 100%;
             height: auto;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
         }
     </style>
 </head>
@@ -19,7 +25,13 @@
     <div id="app"></div>
     <script src="build/main.js"></script>
     <script>
-        Elm.Main.init({ node: document.getElementById('app') });
+        Elm.Main.init({
+            node: document.getElementById('app'),
+            flags: {
+                width: Math.round(window.innerWidth),
+                height: Math.round(window.innerHeight)
+            }
+        });
     </script>
 </body>
 </html>

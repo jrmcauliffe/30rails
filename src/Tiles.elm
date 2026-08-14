@@ -7,14 +7,14 @@ import Tuple exposing (first, second)
 import Types exposing (..)
 
 
-drawTile : Position -> Int -> Mark -> Svg Msg
+drawTile : Position -> Float -> Mark -> Svg Msg
 drawTile pos tileWidth mark =
     Svg.rect
         [ onClick (GotBoardClick ( first pos, second pos ))
-        , x (String.fromInt ((first pos - 1) * tileWidth))
-        , y (String.fromInt ((second pos - 1) * tileWidth))
-        , Svg.Attributes.width (String.fromInt tileWidth)
-        , Svg.Attributes.height (String.fromInt tileWidth)
+        , x (String.fromFloat (toFloat (first pos - 1) * tileWidth))
+        , y (String.fromFloat (toFloat (second pos - 1) * tileWidth))
+        , Svg.Attributes.width (String.fromFloat tileWidth)
+        , Svg.Attributes.height (String.fromFloat tileWidth)
         , fill "rgb(12,128,128)"
         ]
         []

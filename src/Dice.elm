@@ -5,6 +5,7 @@ module Dice exposing
     , black
     , defaultConfig
     , dice
+    , glyph
     , invertColors
     , view
     , white
@@ -178,6 +179,14 @@ pipPositions value =
 -- Core rendering
 
 
+{-| The face drawn in its own 0-100 coordinate space, with no wrapper. Both a
+standalone `<svg>` and an inline `<g>` are built from this.
+-}
+diceShapes : DiceConfig -> DiceValue -> List (Svg msg)
+diceShapes config value =
+    renderBackground config :: List.map (renderPip config) (pipPositions value)
+
+
 diceWithConfig : DiceConfig -> DiceValue -> Svg msg
 diceWithConfig config value =
     Svg.svg
@@ -185,7 +194,7 @@ diceWithConfig config value =
         , Svg.Attributes.height (String.fromFloat config.size)
         , viewBox "0 0 100 100"
         ]
-        (renderBackground config :: List.map (renderPip config) (pipPositions value))
+        (diceShapes config value)
 
 
 renderBackground : DiceConfig -> Svg msg
@@ -249,3 +258,25 @@ dice n =
 view : DiceConfig -> Int -> Svg msg
 view config n =
     diceWithConfig config (fromInt n)
+
+
+{-| A die drawn inline in the parent SVG's own coordinate space, so it scales
+with the parent's viewBox instead of needing a size in pixels. `config.size` is
+the edge length in those user units, and `pos` its top-left corner.
+-}
+glyph : DiceConfig -> { x : Float, y : Float } -> Int -> Svg msg
+glyph config pos n =
+    Svg.g
+        [ transform
+            (String.concat
+                [ "translate("
+                , String.fromFloat pos.x
+                , ","
+                , String.fromFloat pos.y
+                , ") scale("
+                , String.fromFloat (config.size / 100)
+                , ")"
+                ]
+            )
+        ]
+        (diceShapes config (fromInt n))

@@ -2,10 +2,7 @@ module Board exposing (Board, clearPos, getPos, init, nextGamePhase, nextTurnPha
 
 import Array exposing (Array)
 import Dice exposing (Color(..), DiceConfig)
-import Element exposing (Element, column, el, height, padding, px, rgb255, row, text, width)
-import Element.Border as Border
-import Element.Font as Font
-import Element.Input exposing (button)
+import Element exposing (Element)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Tiles exposing (drawTile)
@@ -15,6 +12,40 @@ import Types exposing (..)
 
 boardSize =
     6
+
+
+{-| Every dimension of the drawing, in SVG user units. Nothing here is in
+pixels: the whole board is laid out in this space and the viewBox scales it to
+whatever size the caller asks for, so `cell` is an arbitrary reference unit.
+
+The drawing is a square of `cells` x `cells` cells. The outermost ring holds the
+row/column dice, the next ring in holds the grey station bumpers, and the
+remaining 6x6 in the middle (starting at `playOrigin`) is the play area.
+
+-}
+type alias Geometry =
+    { cell : Float
+    , cells : Int
+    , playOrigin : Int
+    , diceInset : Float
+    , pad : Float
+    , stroke : Float
+    }
+
+
+geometry : Geometry
+geometry =
+    let
+        cell =
+            100
+    in
+    { cell = cell
+    , cells = boardSize + 4
+    , playOrigin = 2
+    , diceInset = cell / 20
+    , pad = cell / 12
+    , stroke = cell / 30
+    }
 
 
 type alias Board =
@@ -47,41 +78,55 @@ clearPos playArea position =
     Array.set ((boardSize * first position) + second position) Empty playArea
 
 
-renderBoard : Board -> Element Msg
-renderBoard board =
+{-| Render the board at `pixelSize` x `pixelSize` CSS pixels. The drawing itself
+is resolution-independent; the caller decides how big it should be.
+-}
+renderBoard : Int -> Board -> Element Msg
+renderBoard pixelSize board =
     let
-        cellSize =
-            60
+        g =
+            geometry
 
-        diceMargin =
-            3
+        {- Cell index -> user units. -}
+        at : Int -> Float
+        at n =
+            toFloat n * g.cell
 
-        diceSize =
-            cellSize - (diceMargin * 2)
+        f : Float -> String
+        f =
+            String.fromFloat
 
-        diceSizeStr =
-            String.fromInt diceSize
+        lastCell =
+            g.cells - 1
 
         diceConfig =
-            { size = toFloat diceSize
+            { size = g.cell - (g.diceInset * 2)
             , colors = { background = Dice.white, pips = Dice.black, border = Just Dice.black }
             }
 
+        {- A die filling the cell at (col, row), inset a little. -}
+        dieAt : Int -> Int -> Int -> Svg Msg
+        dieAt col rowIndex n =
+            Dice.glyph diceConfig
+                { x = at col + g.diceInset, y = at rowIndex + g.diceInset }
+                n
+
+        -- Not yet rendered: tiles still need their play-area offset sorting out.
         positions =
             List.range 1 boardSize
                 |> List.concatMap (\r -> List.range 1 boardSize |> List.map (\c -> ( r, c )))
                 |> List.filterMap
-                    (\pos -> getPos board pos |> Maybe.map (drawTile pos cellSize))
+                    (\pos -> getPos board pos |> Maybe.map (drawTile pos g.cell))
 
         bumpers =
             let
                 drawbox : Position -> Position -> Svg Msg
                 drawbox from to =
                     Svg.rect
-                        [ x (String.fromInt (cellSize * first from))
-                        , y (String.fromInt (cellSize * second from))
-                        , Svg.Attributes.width (String.fromInt (cellSize * (first to - first from + 1)))
-                        , Svg.Attributes.height (String.fromInt (cellSize * (second to - second from + 1)))
+                        [ x (f (at (first from)))
+                        , y (f (at (second from)))
+                        , Svg.Attributes.width (f (at (first to - first from + 1)))
+                        , Svg.Attributes.height (f (at (second to - second from + 1)))
                         , fill "rgb(192,192,192)"
                         ]
                         []
@@ -93,79 +138,49 @@ renderBoard board =
             ]
 
         headerDice =
-            List.range 1 6
-                |> List.map
-                    (\n ->
-                        Svg.foreignObject
-                            [ x (String.fromInt (cellSize * (n + 1) + diceMargin))
-                            , y (String.fromInt diceMargin)
-                            , Svg.Attributes.width diceSizeStr
-                            , Svg.Attributes.height diceSizeStr
-                            ]
-                            [ Dice.view diceConfig n ]
-                    )
+            List.range 1 boardSize |> List.map (\n -> dieAt (n + 1) 0 n)
 
         footerDice =
-            List.range 1 6
-                |> List.map
-                    (\n ->
-                        Svg.foreignObject
-                            [ x (String.fromInt (cellSize * (n + 1) + diceMargin))
-                            , y (String.fromInt (cellSize * 9 + diceMargin))
-                            , Svg.Attributes.width diceSizeStr
-                            , Svg.Attributes.height diceSizeStr
-                            ]
-                            [ Dice.view diceConfig n ]
-                    )
+            List.range 1 boardSize |> List.map (\n -> dieAt (n + 1) lastCell n)
 
         leftDice =
-            List.range 1 6
-                |> List.map
-                    (\n ->
-                        Svg.foreignObject
-                            [ x (String.fromInt diceMargin)
-                            , y (String.fromInt (cellSize * (n + 1) + diceMargin))
-                            , Svg.Attributes.width diceSizeStr
-                            , Svg.Attributes.height diceSizeStr
-                            ]
-                            [ Dice.view diceConfig n ]
-                    )
+            List.range 1 boardSize |> List.map (\n -> dieAt 0 (n + 1) n)
 
         rightDice =
-            List.range 1 6
-                |> List.map
-                    (\n ->
-                        Svg.foreignObject
-                            [ x (String.fromInt (cellSize * 9 + diceMargin))
-                            , y (String.fromInt (cellSize * (n + 1) + diceMargin))
-                            , Svg.Attributes.width diceSizeStr
-                            , Svg.Attributes.height diceSizeStr
-                            ]
-                            [ Dice.view diceConfig n ]
-                    )
+            List.range 1 boardSize |> List.map (\n -> dieAt lastCell (n + 1) n)
 
         lines =
             List.range 0 boardSize
                 |> List.concatMap
                     (\n ->
-                        [ Svg.line [ x1 "0", y1 (String.fromInt ((n + 2) * cellSize)), x2 (String.fromInt ((boardSize + 4) * cellSize)), y2 (String.fromInt ((n + 2) * cellSize)), stroke "black" ] []
-                        , Svg.line [ y1 "0", x1 (String.fromInt ((n + 2) * cellSize)), y2 (String.fromInt ((boardSize + 4) * cellSize)), x2 (String.fromInt ((n + 2) * cellSize)), stroke "black" ] []
+                        let
+                            offset =
+                                f (at (n + g.playOrigin))
+
+                            far =
+                                f (at g.cells)
+                        in
+                        [ Svg.line [ x1 "0", y1 offset, x2 far, y2 offset, stroke "black" ] []
+                        , Svg.line [ y1 "0", x1 offset, y2 far, x2 offset, stroke "black" ] []
                         ]
                     )
 
-        totalSize =
-            cellSize * 10
-
-        totalSizeStr =
-            String.fromInt totalSize
-
         viewBoxStr =
-            "-5 -5 " ++ String.fromInt (totalSize + 10) ++ " " ++ String.fromInt (totalSize + 10)
+            String.join " "
+                [ f -g.pad
+                , f -g.pad
+                , f (at g.cells + (g.pad * 2))
+                , f (at g.cells + (g.pad * 2))
+                ]
     in
     List.concat [ bumpers, headerDice, footerDice, leftDice, rightDice, lines ]
         |> svg
             [ viewBox viewBoxStr
-            , strokeWidth "2"
+            , Svg.Attributes.class "board"
+            , Svg.Attributes.width (String.fromInt pixelSize)
+            , Svg.Attributes.height (String.fromInt pixelSize)
+            , preserveAspectRatio "xMidYMid meet"
+            , strokeWidth (f g.stroke)
             ]
         |> Element.html
 

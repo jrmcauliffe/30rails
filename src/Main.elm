@@ -2,41 +2,55 @@ module Main exposing (main)
 
 import Board exposing (..)
 import Browser
-import Dice exposing (Color(..), DiceColors, DiceConfig, view)
-import Element exposing (Element, centerX, column, el, padding, row, text)
+import Browser.Events
+import Dice exposing (Color(..), DiceConfig)
+import Element exposing (Element, centerX, column, el, row, text)
 import Element.Font as Font
 import Element.Input exposing (button)
 import Hints exposing (getHint)
 import Html exposing (Html)
+import Layout exposing (Metrics)
 import Random
-import Svg exposing (Svg)
 import Types exposing (..)
 
 
 view : Model -> Html Msg
 view model =
-    Element.layout [] <|
-        row [ padding 30 ]
-            [ column
-                [ padding 30, centerX ]
-                [ el [ Font.size 50, Font.family [ Font.typeface "Alfa Slab One" ] ] (text "30 Rails"), renderBoard model.board, viewHint model.gamePhase, viewDebug model ]
-            , viewPanel model
-            ]
+    let
+        m =
+            Layout.fromViewport model.viewport
+    in
+    Layout.page m
+        [ viewBoard m model
+        , viewPanel m model
+        ]
 
 
-viewPanel : Model -> Element Msg
-viewPanel model =
+viewBoard : Metrics -> Model -> Element Msg
+viewBoard m model =
+    Layout.stack m
+        [ el
+            [ Font.size m.titleFont, Font.family [ Font.typeface "Alfa Slab One" ], centerX ]
+            (text "30 Rails")
+        , renderBoard m.board model.board
+        , viewHint m model.gamePhase
+        , viewDebug m model
+        ]
+
+
+viewPanel : Metrics -> Model -> Element Msg
+viewPanel m model =
     let
         v =
             case ( model.gamePhase, model.turnPhase ) of
                 ( New, _ ) ->
-                    button [ Font.size 30 ]
+                    button [ Font.size m.buttonFont, centerX ]
                         { onPress = Just ClickedStart
                         , label = text "Start"
                         }
 
                 ( _, Roll ) ->
-                    button [ Font.size 30 ]
+                    button [ Font.size m.buttonFont, centerX ]
                         { onPress = Just ClickedRoll
                         , label = text "Roll"
                         }
@@ -44,38 +58,38 @@ viewPanel model =
                 _ ->
                     Element.none
     in
-    column [ padding 60 ]
+    Layout.panel m
         [ v
-        , viewFace model.face
+        , viewFace m model.face
         ]
 
 
-diceConfig : DiceConfig
-diceConfig =
-    { size = 56
+diceConfig : Metrics -> DiceConfig
+diceConfig m =
+    { size = m.panelDice
     , colors = { background = Named "navy", pips = Named "red", border = Nothing }
     }
 
 
-viewFace : Int -> Element Msg
-viewFace face =
-    Dice.view diceConfig face |> Element.html
+viewFace : Metrics -> Int -> Element Msg
+viewFace m face =
+    Dice.view (diceConfig m) face |> Element.html
 
 
+{-| A paragraph rather than an `el`: hints run to a couple of hundred
+characters, and an `el` sizes to its content, so the text would run off the side
+of the window instead of wrapping.
+-}
+viewHint : Metrics -> GamePhase -> Element Msg
+viewHint m phase =
+    Element.paragraph
+        [ Font.size m.bodyFont, Layout.boardWidth m, Layout.lineSpacing m ]
+        [ text (getHint phase) ]
 
---    el [ Font.size 15 ] (text <| String.fromInt face)
 
-
-viewHint : GamePhase -> Element Msg
-viewHint phase =
-    getHint phase
-        |> text
-        |> el [ Font.size 15 ]
-
-
-viewDebug : Model -> Element Msg
-viewDebug model =
-    column []
+viewDebug : Metrics -> Model -> Element Msg
+viewDebug m model =
+    column [ Font.size m.bodyFont, Layout.boardWidth m ]
         [ row [] [ text "Debug" ]
         , row [] [ text (gamePhaseString model.gamePhase) ]
         , row [] [ text (turnPhaseString model.turnPhase) ]
@@ -87,6 +101,7 @@ type alias Model =
     , gamePhase : GamePhase
     , turnPhase : TurnPhase
     , board : Board
+    , viewport : Viewport
     }
 
 
@@ -128,12 +143,23 @@ gamePhaseString p =
             "Error: " ++ s
 
 
-initialModel : Model
-initialModel =
+{-| Window size comes in as flags rather than via Browser.Dom.getViewport, so
+the very first render is already the right size instead of flashing at a
+default and then resizing.
+-}
+type alias Flags =
+    { width : Int
+    , height : Int
+    }
+
+
+initialModel : Flags -> Model
+initialModel flags =
     { face = 1
     , gamePhase = New
     , turnPhase = Roll
     , board = Board.init
+    , viewport = { width = flags.width, height = flags.height }
     }
 
 
@@ -164,16 +190,19 @@ update msg model =
             else
                 ( model, Cmd.none )
 
+        WindowResized w h ->
+            ( { model | viewport = { width = w, height = h } }, Cmd.none )
+
 
 
 -- model
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
-        { init = \_ -> ( initialModel, Cmd.none )
+        { init = \flags -> ( initialModel flags, Cmd.none )
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = \_ -> Browser.Events.onResize WindowResized
         }

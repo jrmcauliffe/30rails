@@ -1,8 +1,17 @@
-module Types exposing (GamePhase(..), Mark(..), Msg(..), Position, TurnPhase(..), getMark)
+module Types exposing (GamePhase(..), Mark(..), Msg(..), Position, TurnPhase(..), Viewport, getMark)
 
 
 type alias Position =
     ( Int, Int )
+
+
+{-| Size of the browser window in CSS pixels. Seeded from flags so the first
+render is already correctly sized, then kept current by Browser.Events.onResize.
+-}
+type alias Viewport =
+    { width : Int
+    , height : Int
+    }
 
 
 type Mark
@@ -45,3 +54,4 @@ type Msg
     | ClickedStart
     | GotDiceIndex Int
     | GotBoardClick Position
+    | WindowResized Int Int
