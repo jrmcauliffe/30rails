@@ -1,9 +1,9 @@
 name: CI
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "master" branch
+  # Triggers the workflow on pushes to the production branch.
   push:
-    branches: [ "master", "WIP", "dice" ]
+    branches: [ "master" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -61,6 +61,7 @@ jobs:
         run: npx elm-test-rs tests/* >> $GITHUB_STEP_SUMMARY
 
   deploy:
+    if: github.ref == 'refs/heads/master'
     needs: [test]
     runs-on: ubuntu-latest
     environment: prod
