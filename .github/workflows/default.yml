@@ -3,7 +3,7 @@ name: CI
 on:
   # Triggers the workflow on pushes to the production branch.
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -61,7 +61,7 @@ jobs:
         run: npx elm-test-rs tests/* >> $GITHUB_STEP_SUMMARY
 
   deploy:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     needs: [test]
     runs-on: ubuntu-latest
     environment: prod
